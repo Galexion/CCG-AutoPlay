@@ -28,6 +28,7 @@ let expectedSettings:settings = [
     { "setting": "templateLayer", "data": "20", "type": "1" },
     { "setting": "bugch", "data": "1", "type": "1" },
     { "setting": "bugLayer", "data": "20", "type": "1" },
+    { "setting": "arrayNameArea", "data": "2", "type": "1" },
 ]
 /* Single Time Functions */
 db.serialize(() => {

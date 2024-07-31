@@ -9,10 +9,11 @@
 	let defaultregex = /\s-\s|\//gm;
 	let exclip = 'programs/artist - name - tag1 - tag2.mp4';
 
-	let refreshtrigger = 0;
-	let queuelength = undefined;
-	let layers = [[1,10],[1,20]]
-	let settings = undefined;
+	let refreshtrigger:number = 0;
+	let queuelength:number = undefined;
+	let layers:Array<any> = [[1,10],[1,20]]
+	let settings:number = undefined;
+	let nameArrayPlace:number = undefined;
 
 	async function grabSettings() {
 			const options = {
@@ -28,6 +29,7 @@
 					const data = await response.json();
 					settings = data;
 					queuelength = settings.find((e) => e.setting == "queuelength")?.data || undefined;
+					nameArrayPlace = settings.find((e) => e.setting == "arrayNameArea")?.data || undefined;
 					layers[0][0] == settings.find((e) => e.setting == "clipch")?.data
 					layers[0][1] == settings.find((e) => e.setting == "clipLayer")?.data
 					layers[1][0] == settings.find((e) => e.setting == "bugch")?.data
@@ -83,8 +85,8 @@
 
 	<HoverCard.Root>
 		<HoverCard.Trigger>
-			<p>Clip Layer</p></HoverCard.Trigger
-		>
+			<p>Clip Layer</p>
+			</HoverCard.Trigger>
 		<HoverCard.Content>
 			<p>The Channel & Layer that Clips will be played on.</p>
 		</HoverCard.Content>
@@ -95,13 +97,29 @@
 		<p class="m-2">Layer</p>
 		<Input class="m-1 w-[150px]" type="number" min="0" bind:value={layers[0][1]} />
 	</div>
+	
+	<HoverCard.Root>
+		<HoverCard.Trigger>
+			<p>Channel Bug Layer</p>
+			</HoverCard.Trigger
+		>
+		<HoverCard.Content>
+			<p>The Channel & Layer that Channel Bug will be shown on.</p>
+		</HoverCard.Content>
+	</HoverCard.Root>
+	<div style="display:flex;">
+		<p class="m-2">CH</p>
+		<Input class="m-1 w-[107px]" type="number" min="0" bind:value={layers[1][0]} />
+		<p class="m-2">Layer</p>
+		<Input class="m-1 w-[150px]" type="number" min="0" bind:value={layers[1][1]} />
+	</div>
 
 	<h4 class="text-1xl">Autotagging</h4>
 
 	<HoverCard.Root>
 		<HoverCard.Trigger>
-			<p>Auto Tag Regex</p></HoverCard.Trigger
-		>
+			<p>Auto Tag Regex</p>
+		</HoverCard.Trigger>
 		<HoverCard.Content>
 			<p>Customize the Regex that seperates the file Names into Tags.</p>
 			<br /><br />
@@ -129,14 +147,15 @@
 
 	<HoverCard.Root>
 		<HoverCard.Trigger>
-			<p>File Name Area</p></HoverCard.Trigger
-		>
+			<p>File Name Area</p>
+		</HoverCard.Trigger>
 		<HoverCard.Content>
 			<p>
-				Controls where the Name in the file is found, everything else around it is considered a tag.
+				Controls where the Name in the file is found, everything else around it is considered a tag.<br><br>
+				Please Ensure the Name is in the same place in the Autotag system, or else a tag will be selected as a tag and vice versa for any files that don't follow the format.
 			</p>
 		</HoverCard.Content>
 	</HoverCard.Root>
-	<Input class="m-1 w-[360px]" type="number" min="0" />
+	<Input class="m-1 w-[360px]" type="number" min="0" bind:value={nameArrayPlace} />
 </ScrollArea>
 {/if}
