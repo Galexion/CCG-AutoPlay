@@ -36,9 +36,10 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"bits-ui": "^0.21.12",
+		"bits-ui": "^0.21.13",
 		"casparcg-connection": "^6.2.1",
 		"clsx": "^2.1.1",
+		"cmdk-sv": "^0.0.18",
 		"sqlite3": "^5.1.7",
 		"svelte-radix": "^1.1.0",
 		"sveltekit-sse": "^0.13.2",

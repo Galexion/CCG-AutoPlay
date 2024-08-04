@@ -34,9 +34,9 @@
   let showPanel = false;
 </script>
 <div class=" flex gap-2 mb-2">
-<Input type="search" placeholder="Search" bind:value={searchTerm} class="w-[400px]" />
+<Input type="search" placeholder="Search" bind:value={searchTerm} class="w-[450px]" />
 </div>
-<ScrollArea class="h-[793px] w-[400px] rounded-md border p-4">
+<ScrollArea class="h-[793px] w-[450px] rounded-md border p-4">
 <div class="gap-2" style="width:110%">
         {#each filteredClipList as clip}
         {#if clip.type == "STILL"} 

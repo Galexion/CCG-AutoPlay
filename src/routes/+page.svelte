@@ -2,6 +2,7 @@
 	import type { LayoutData } from './$types';
 	import { writable } from 'svelte/store';
 	import { source } from 'sveltekit-sse';
+	import { onMount } from 'svelte';
 	export let data: LayoutData;
 	data.mediaList.sort(
 		(a, b) =>
@@ -18,11 +19,11 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import Templates from '$lib/tabs/templates.svelte';
-	import settings from '$lib/tabs/settings.svelte';
+	import settingsTab from '$lib/tabs/settings.svelte';
 	import Clips from '$lib/tabs/clips.svelte';
-	import Overlays from '$lib/tabs/Overlays.svelte';
+	import Overlays from '$lib/tabs/overlays.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	let queued: Array = [];
+	let queued: Array<any> = [];
 	async function getQueue() {
 		const options = {
 			method: 'POST',
@@ -34,6 +35,34 @@
 		return response;
 	}
 	let typing = ['Program', 'Commerical', 'Skit', 'Bumper'];
+
+	let nameArrayPlace: number = 1;
+	let categoryNamePlace: number = 0;
+	let settings: Array<any> = undefined;
+	async function grabSettings() {
+		const options = {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' }
+		};
+
+		try {
+			const response = await fetch('/api/settings', options);
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			const data = await response.json();
+			settings = data;
+			nameArrayPlace = settings.find((e) => e.setting == 'arrayNameArea')?.data || undefined;
+			categoryNamePlace = settings.find((e) => e.setting == 'categoryNameArea')?.data || undefined;
+			console.log(data);
+		} catch (err) {
+			console.error('Error fetching settings:', err);
+		}
+	}
+	// Call grabSettings when the component mounts
+	onMount(() => {
+		grabSettings();
+	});
 
 	let customData = writable('{}');
 	let items = {};
@@ -53,7 +82,7 @@
 			mediaList: data.mediaList,
 			customData: $customData
 		},
-		{ label: 'Settings', value: 3, component: settings }
+		{ label: 'Settings', value: 3, component: settingsTab, mediaList: data.mediaList }
 	];
 
 	function playbackControls(type) {
@@ -134,13 +163,9 @@
 			<h2 class="text-2xl font-semibold">Currently Playing</h2>
 
 			<h3 class="pt-2 font-semibold">
-				{currentlyPlaying.name.toString().split(regex)[
-					currentlyPlaying.name.toString().split(regex).length - 1
-				]}
+				{currentlyPlaying.name.toString().split(regex)[nameArrayPlace]}
 				{#each currentlyPlaying.name.toString().split(regex) as tag}
-					{#if tag != currentlyPlaying?.name.toString().split(regex)[currentlyPlaying?.name
-								.toString()
-								.split(regex).length - 1]}
+					{#if tag != currentlyPlaying?.name.toString().split(regex)[nameArrayPlace]}
 						<Badge variant="secondary" class="tag mr-1">
 							<span style=" font-size:15px;" class="material-symbols-outlined">
 								style
@@ -212,10 +237,10 @@
 			>
 		</div>
 		<h3>Custom Template Data (JSON)</h3>
-		<Textarea bind:value={$customData} style="width:90%;" />
+		<Textarea bind:value={$customData} style="width:98%;" />
 		<div class="pt-2">
 			<h2 class="text-3xl font-semibold">Queue</h2>
-			<Table.Root style="width:90%;">
+			<Table.Root style="width:98%;">
 				<Table.Header>
 					<Table.Row>
 						<Table.Head class="w-[300px]">Name</Table.Head>
@@ -239,13 +264,9 @@
 							<Table.Row>
 								<Table.Cell class="font-medium">
 									<h3 class="pt-2 font-semibold">
-										{item.media.toString().split(regex)[
-											item.media.toString().split(regex).length - 1
-										]}
+										{item.media.toString().split(regex)[nameArrayPlace]}
 										{#each item.media.toString().split(regex) as tag}
-											{#if tag != item.media.toString().split(regex)[item.media
-														.toString()
-														.split(regex).length - 1]}
+											{#if tag != item.media.toString().split(regex)[nameArrayPlace]}
 												<Badge variant="secondary" class="tag mr-1">
 													<span style=" font-size:15px;" class="material-symbols-outlined">
 														style
@@ -286,15 +307,15 @@
 								</Table.Cell>
 								<Table.Cell class="text-right">
 									<div>
-										<button
+										<Button
 											on:click={() => removeFromQueue(item.id)}
-											class="rounded bg-gray-800 px-2 py-1 font-semibold text-white hover:bg-red-700"
-											>Remove</button
+											class="rounded bg-gray-800 px-2 py-0.5 font-semibold text-white hover:bg-red-700"
+											>Remove</Button
 										>
-										<button
+										<Button
 											on:click={() => removeFromQueue(item.id)}
-											class="rounded bg-gray-800 px-2 py-1 font-semibold text-white hover:bg-red-700"
-											>Replace</button
+											class="rounded bg-gray-800 px-2 py-0.5 font-semibold text-white hover:bg-red-700"
+											>Replace</Button
 										>
 									</div>
 								</Table.Cell>
@@ -306,12 +327,14 @@
 		</div>
 	</div>
 	<div class="clips">
-		<Tabs.Root value="Clips" class="w-[400px]">
-			<Tabs.List>
+		<Tabs.Root value="Clips" class="w-[450px]">
+			<div class="flex">
+			<Tabs.List class=" m-auto">
 				{#each items as item}
 					<Tabs.Trigger value={item.label}>{item.label}</Tabs.Trigger>
 				{/each}
 			</Tabs.List>
+		</div>
 			{#each items as item}
 				<Tabs.Content value={item.label}>
 					<svelte:component this={item.component} {item} />

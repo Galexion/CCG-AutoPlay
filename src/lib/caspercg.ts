@@ -12,7 +12,7 @@ interface recentlyplayedItem {
 
 interface recentlyplayed extends Array<recentlyplayedItem> { }
 
-import { getQueue, removeMedia, queueMedia, addToRecentlyPlayed, getRecentlyPlayed, refreshRecentlyPlayed } from "./database";
+import { getQueue, removeMedia, queueMedia, addToRecentlyPlayed, getRecentlyPlayed, getSettings } from "./database";
 import { CasparCG } from "casparcg-connection"
 import { TransitionType } from "casparcg-connection/dist/enums";
 let connection = new CasparCG()
@@ -49,16 +49,17 @@ const intervalId = setInterval(async () => {
         waitingForQueue = 1
         nextInQueue()
     }
-    // ToDo: check Item Queue and Settings, If queue.length is below settings.queuelength, add new content
     let queue: queue = await getQueue()
-    if (queue.length < 5) {
+    /* if the queue happens to be less then the length the user wants it to be, add new content. */
+    let settings = await getSettings()
+    if (queue.length < settings.find((item) => item.setting == "queuelength").data) {
         let media = await getMediaList();
         let recentlyplayed: recentlyplayed = await getRecentlyPlayed();
         let mediaList = media.filter((clip) => {
             return clip.type !== "STILL" &&
-                !queue.some((element) => element.media === clip.clip) &&
+                !queue.some((element) => element.media == clip.clip) &&
                 !recentlyplayed.some((element) => {
-                    return element.media === clip.clip
+                    return element.media == clip.clip
                 });
         });
         if (mediaList.length > 0) {
@@ -68,7 +69,7 @@ const intervalId = setInterval(async () => {
             queueMedia(clip.clip, clip.type, seconds)
         }
     }
-}, 1000);
+}, 500);
 
 // To stop the interval later:
 //clearInterval(intervalId);
@@ -182,7 +183,7 @@ export async function affixChannelBugtoServer(channel: number, layer: number, cl
 
         console.log(`Successfully placed CHANNELBUG on channel ${channel}-${layer}`);
     } catch (err) {
-        console.error('Error playing CHANNELBUG:', err);
+        console.error('Error placing CHANNELBUG:', err);
     }
 }
 
