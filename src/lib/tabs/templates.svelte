@@ -2,8 +2,8 @@
 	export let item: any;
 	let TemplateDuration = 10;
 	import {exportedTemplates} from '../../routes/customStuff';
-
-	function storeTemplate(template:string,data:object) {
+ import {Input} from '$lib/components/ui/input'
+	function storeTemplate(template:String,data:object) {
 		exportedTemplates.update((n) => {
 			n.push({template,data})
 		});
@@ -13,7 +13,7 @@
 		savedTemplates = value;
 	});
 
-	function SendToServer(clip:string, TemplateDuration:number) {
+	function SendToServer(clip:String, TemplateDuration:number) {
 		const options = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json', 'User-Agent': 'insomnia/9.2.0' },
@@ -31,7 +31,7 @@
 		style="
 display: block ruby;"
 	>
-		<input type="number" bind:value={TemplateDuration} min="0" /> Sec.
+		<Input type="number" bind:value={TemplateDuration} min="0" /> Sec.
 	</p>
 </label>
 <h2>Templates</h2>

@@ -36,8 +36,8 @@ export const flyAndScale = (
 	};
 
 	const styleToString = (
-		style: Record<string, number | string | undefined>
-	): string => {
+		style: Record<String, number | String | undefined>
+	): String => {
 		return Object.keys(style).reduce((str, key) => {
 			if (style[key] === undefined) return str;
 			return str + `${key}:${style[key]};`;

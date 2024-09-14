@@ -1,22 +1,40 @@
 <script lang="ts">
 	interface SubCategory {
-		name: string;
+		name: String;
 		ratio: number;
 	}
 
 	interface Category {
-		name: string;
-		ratio: number;
-		subCategories?: SubCategory[];
+		open: boolean | undefined;
+		name: String;
+		tag?: String;
 	}
-	let categories: Array<Category> = [{ name: 'programs', ratio: 1 }];
+
+	interface TagArray {
+		name: String;
+		open: Boolean;
+		ratio: Number;
+	}
+
+	interface Ratios {
+		name: string;
+		tags: Array<TagArray>;
+		tag: String;
+		ratio: Number;
+		open: Array<Boolean>;
+		openadd: boolean;
+	}
+	let categories: Array<Category> = [];
+	let Ratios: Array<Ratios> = [];
+	let programRoll: Array<String> = [];
+	let programRollSelect: string | String;
 
 	let advTabs = [
 		{ label: 'Catagories', value: 0 },
 		{ label: 'Ratios', value: 1 }
 	];
 
-	let catTags: Array<string> = [];
+	let catTags: Array<String> = [];
 
 	export let item: any;
 	import * as Tabs from '$lib/components/ui/tabs';
@@ -42,7 +60,7 @@
 	});
 
 	let refreshtrigger: number = 0;
-	let queuelength: number = [];
+	let queuelength: number = 5;
 	let layers: Array<any> = [
 		[1, 10],
 		[1, 20]
@@ -66,11 +84,13 @@
 			settings = data;
 			queuelength = settings.find((e) => e.setting == 'queuelength')?.data || undefined;
 			nameArrayPlace = settings.find((e) => e.setting == 'arrayNameArea')?.data || undefined;
-			layers[0][0] == settings.find((e) => e.setting == 'clipch')?.data;
-			layers[0][1] == settings.find((e) => e.setting == 'clipLayer')?.data;
-			layers[1][0] == settings.find((e) => e.setting == 'bugch')?.data;
-			layers[1][1] == settings.find((e) => e.setting == 'bugLayer')?.data;
-			categories == settings.find((e) => e.setting == 'categories')?.data || [];
+			layers[0][0] = settings.find((e) => e.setting == 'clipch')?.data;
+			layers[0][1] = settings.find((e) => e.setting == 'clipLayer')?.data;
+			layers[1][0] = settings.find((e) => e.setting == 'bugch')?.data;
+			layers[1][1] = settings.find((e) => e.setting == 'bugLayer')?.data;
+			categories = JSON.parse(settings.find((e) => e.setting == 'categories')?.data) || [];
+			programRoll = JSON.parse(settings.find((e) => e.setting == 'programRoll')?.data) || [];
+			Ratios = JSON.parse(settings.find((e) => e.setting == 'ratios')?.data) || [];
 			console.log(data);
 			grabTags();
 		} catch (err) {
@@ -85,6 +105,9 @@
 		settings.find((e) => e.setting == 'clipLayer').data = layers[0][1];
 		settings.find((e) => e.setting == 'bugch').data = layers[1][0];
 		settings.find((e) => e.setting == 'bugLayer').data = layers[1][1];
+		settings.find((e) => e.setting == 'categories').data = JSON.stringify(categories);
+		settings.find((e) => e.setting == 'programRoll').data = JSON.stringify(programRoll);
+		settings.find((e) => e.setting == 'ratios').data = JSON.stringify(Ratios);
 		const options = {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
@@ -112,35 +135,69 @@
 	}
 
 	let newcategory = '';
-
+	let newratiocategory = '';
 	let open = false;
 	let value = '';
-
 	$: selectedValue =
 		catTags.find((f) => {
 			return f === value;
 		}) ?? 'Select a Tag...';
 
 	function addCategory() {
-		categories.push({
-			name: newcategory,
-			ratio: 0,
-			subCategories: []
-		});
-		categories = categories;
-		/* a dumb fucking workaround because apparently svelte is inept enough to not reconise when a push() updates the array */
-		newcategory = '';
+		if (newcategory.length > 0) {
+			categories.push({
+				name: newcategory,
+				tag: ''
+			});
+			categories = categories;
+			/* a dumb fucking workaround because apparently svelte is inept enough to not reconise when a push() updates the array */
+			newcategory = '';
+		}
 	}
+
+	function addRatio() {
+		if (newratiocategory.length > 0) {
+			Ratios.push({
+				name: newratiocategory,
+				tags: [],
+				tag: '',
+				ratio: 0,
+				open: [],
+				openadd: false
+			});
+			Ratios = Ratios;
+			/* a dumb fucking workaround because apparently svelte is inept enough to not reconise when a push() updates the array */
+			newratiocategory = '';
+		}
+	}
+
+	function addProgramToRoll(program: String) {
+		programRoll.push(program);
+		programRoll = programRoll;
+	}
+	function removeProgramFromRoll(program: String) {
+		const index = programRoll.indexOf(program);
+		const x = programRoll.splice(index, 1);
+
+		programRoll = programRoll;
+	}
+
 	// Call grabSettings when the component mounts
 	onMount(() => {
 		grabSettings();
 	});
 
-	function closeAndFocusTrigger(triggerId: string) {
+	function closeAndFocusTrigger(triggerId: any) {
 		open = false;
 		tick().then(() => {
 			document.getElementById(triggerId)?.focus();
 		});
+	}
+
+	function addTags(name: String, increment: number) {
+		console.log('Attempting to add Tag');
+		Ratios[increment].tags.push({ name, open: false, number: 0 });
+		Ratios[increment].tag = '';
 	}
 </script>
 
@@ -214,6 +271,7 @@
 			</p>
 		{/if}
 
+		<!-- ADVANCED SETTINGS FOR AUTO PLAY -->
 		<Sheet.Root>
 			<Sheet.Trigger>
 				<Button variant="outline">Advanced Settings</Button></Sheet.Trigger
@@ -256,7 +314,7 @@
 												>
 											</div>
 											{#if categories.length > 0}
-												{#each categories as catagory}
+												{#each categories as catagory, i}
 													<Accordion.Root>
 														<Accordion.Item value="item-1">
 															<Accordion.Trigger
@@ -264,40 +322,38 @@
 																	{catagory.name}
 																</p></Accordion.Trigger
 															>
-															<Accordion.Content class="text-white"
-																><Popover.Root bind:open let:ids>
+															<Accordion.Content class="text-white">
+																<!-- Tag Selector -->
+																<Popover.Root bind:open={categories[i].open} let:ids>
 																	<Popover.Trigger asChild let:builder>
 																		<Button
 																			builders={[builder]}
 																			variant="outline"
 																			role="combobox"
-																			aria-expanded={open}
+																			aria-expanded={categories[i].open}
 																			class="w-[200px] justify-between"
 																		>
-																			{selectedValue}
+																			{categories[i].tag || 'No Tag Selected...'}
 																			<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 																		</Button>
 																	</Popover.Trigger>
 																	<Popover.Content class="w-[200px] p-0">
 																		<Command.Root>
-																			<Command.Input
-																				placeholder="Search framework..."
-																				class="h-9"
-																			/>
-																			<Command.Empty>No framework found.</Command.Empty>
+																			<Command.Input placeholder="Search tags..." class="h-9" />
+																			<Command.Empty>No tags found.</Command.Empty>
 																			<Command.Group>
 																				{#each catTags as tag}
 																					<Command.Item
 																						value={tag}
 																						onSelect={(currentValue) => {
-																							value = currentValue;
+																							categories[i].tag = currentValue;
 																							closeAndFocusTrigger(ids.trigger);
 																						}}
 																					>
 																						<Check
 																							class={cn(
 																								'mr-2 h-4 w-4',
-																								value !== tag && 'text-transparent'
+																								categories[i].tag !== tag && 'text-transparent'
 																							)}
 																						/>
 																						{tag}
@@ -307,10 +363,17 @@
 																		</Command.Root>
 																	</Popover.Content>
 																</Popover.Root>
+																<!-- Either Tag Association / SubTags -->
 															</Accordion.Content>
 														</Accordion.Item>
 													</Accordion.Root>
 												{/each}
+												<Button
+													on:click={() => updateSettings()}
+													class="mt-2 rounded bg-gray-800 px-4 py-2 font-bold text-white hover:bg-green-700"
+												>
+													Save Settings
+												</Button>
 											{:else}
 												<p>
 													You'll need to add a category to use this feature. Create one to get
@@ -318,17 +381,205 @@
 												</p>
 											{/if}
 										{:else if item.label == 'Ratios'}
+										
+											<h1 class="pb-1 text-2xl font-extrabold text-white">Program Roll</h1>
+											<div class="flex pb-1">
+												<Popover.Root class=" " let:ids>
+													<Popover.Trigger asChild let:builder>
+														<Button
+															builders={[builder]}
+															variant="outline"
+															role="combobox"
+															class="mr-1 w-[420px] justify-between"
+														>
+															{programRollSelect || 'No Tag Selected...'}
+															<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+														</Button>
+													</Popover.Trigger>
+													<Popover.Content class=" p-0">
+														<Command.Root>
+															<Command.Input placeholder="Search tags..." class="h-9" />
+															<Command.Empty>No tags found.</Command.Empty>
+															<Command.Group>
+																{#each Ratios as tag}
+																	<Command.Item
+																		value={tag.name}
+																		onSelect={(currentValue) => {
+																			programRollSelect = currentValue;
+																			closeAndFocusTrigger(ids.trigger);
+																		}}
+																	>
+																		<Check
+																			class={cn(
+																				'mr-2 h-4 w-4',
+																				programRollSelect !== tag.name && 'text-transparent'
+																			)}
+																		/>
+																		{tag.name}
+																	</Command.Item>
+																{/each}
+															</Command.Group>
+														</Command.Root>
+													</Popover.Content>
+												</Popover.Root>
+												<Button
+													variant="outline"
+													class="hover:bg-green-700"
+													on:click={() => addProgramToRoll(programRollSelect)}>Add</Button
+												>
+											</div>
+											{#each programRoll as program, i}
+												<div class="mb-1 rounded-md border p-4">
+													<div class="flex">
+														<span class="inline-flex items-center space-x-1">
+															<h1 class="text-2xl font-extrabold text-white">{i + 1}.&nbsp;</h1>
+															<h1 class="text-xl font-bold text-white">{program}</h1>
+														</span>
+														<Button
+															variant="outline"
+															class="ml-auto hover:bg-red-700"
+															on:click={() => removeProgramFromRoll(i)}>Remove</Button
+														>
+													</div>
+												</div>
+											{/each}
+											<hr class="mb-4 mt-4" />
+											<div class="flex">
+												<Input
+													class=" mr-1 w-[411px]"
+													type="text"
+													bind:value={newratiocategory}
+													placeholder="Ratio Category Name"
+												/>
+												<Button
+													variant="outline"
+													class="hover:bg-green-700"
+													on:click={() => addRatio()}>Add</Button
+												>
+											</div>
 											<!-- TODO: Add a Visual Here, Pie Chart or 2 tone line -->
 											<Accordion.Root>
-												<Accordion.Item value="item-1">
-													<Accordion.Trigger
-														><p class="font-bold text-white">category 1</p></Accordion.Trigger
-													>
-													<Accordion.Content>
-														Yes. It adheres to the WAI-ARIA design pattern.
-													</Accordion.Content>
-												</Accordion.Item>
+													{#each Ratios as ratio, ii}
+														<Accordion.Root>
+															<Accordion.Item value={ratio.name}>
+																<Accordion.Trigger>
+																	<p class="font-bold text-white">
+																		{ratio.name}
+																	</p>
+																</Accordion.Trigger>
+																<Accordion.Content class="text-white w-[340px]">
+																	<!-- Tag Selector -->
+																	<!-- If Ratio[ii] tags length < 1, then only show this, else show each tag -->
+																	{#each ratio.tags as ratioTag}
+																	<div class="flex gap-1 mb-1">
+																		<Popover.Root bind:open={ratioTag.open} let:ids>
+																			<Popover.Trigger asChild let:builder>
+																				<Button
+																					builders={[builder]}
+																					variant="outline"
+																					role="combobox"
+																					aria-expanded={ratio.open}
+																					class=" w-[150px] justify-between"
+																				>
+																					{ratioTag.name || 'No Tag Selected...'}
+																					<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+																				</Button>
+																			</Popover.Trigger>
+																			<Popover.Content class="w-[200px]">
+																				<Command.Root>
+																					<Command.Input placeholder="Search tags..." class="h-9" />
+																					<Command.Empty>No tags found.</Command.Empty>
+																					<Command.Group>
+																						{#each catTags as tag}
+																							<Command.Item
+																								value={tag}
+																								onSelect={(currentValue) => {
+																									ratioTag.name = currentValue;
+																									closeAndFocusTrigger(ids.trigger);
+																								}}
+																							>
+																								<Check
+																									class={cn(
+																										'mr-2 h-4 w-4',
+																										ratioTag.name !== tag && 'text-transparent'
+																									)}
+																								/>
+																								{tag}
+																							</Command.Item>
+																						{/each}
+																					</Command.Group>
+																				</Command.Root>
+																			</Popover.Content>
+																		</Popover.Root>
+																		<Input type="number" bind:value={ratioTag.ratio} min="0" class="w-[102px]" />
+																		<Button variant="outline"
+																			on:click={() => updateSettings()}
+																			class="rounded px-4 py-2 text-white hover:bg-red-700"
+																		>
+																			Delete
+																	</Button>
+																	</div>
+																	{/each}
+																	<!-- Add new Catagories -->
+																	<div class="flex">
+																		<Popover.Root bind:open={ratio.openadd} let:ids>
+																			<Popover.Trigger asChild let:builder>
+																				<Button
+																					builders={[builder]}
+																					variant="outline"
+																					role="combobox"
+																					aria-expanded={ratio.open}
+																					class="mr-1 w-[411px] justify-between"
+																				>
+																					{ratio.tag || 'No Tag Selected...'}
+																					<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+																				</Button>
+																			</Popover.Trigger>
+																			<Popover.Content class="w-[200px] p-0">
+																				<Command.Root>
+																					<Command.Input placeholder="Search tags..." class="h-9" />
+																					<Command.Empty>No tags found.</Command.Empty>
+																					<Command.Group>
+																						{#each catTags as tag}
+																							<Command.Item
+																								value={tag}
+																								onSelect={(currentValue) => {
+																									ratio.tag = currentValue;
+																									closeAndFocusTrigger(ids.trigger);
+																								}}
+																							>
+																								<Check
+																									class={cn(
+																										'mr-2 h-4 w-4',
+																										ratio.tag !== tag && 'text-transparent'
+																									)}
+																								/>
+																								{tag}
+																							</Command.Item>
+																						{/each}
+																					</Command.Group>
+																				</Command.Root>
+																			</Popover.Content>
+																		</Popover.Root>
+																		<Button
+																			variant="outline"
+																			class="hover:bg-green-700"
+																			on:click={() => addTags(ratio.tag, ii)}>Add</Button
+																		>
+																	</div>
+																	<!-- Either Tag Association / SubTags -->
+																</Accordion.Content>
+															</Accordion.Item>
+														</Accordion.Root>
+													{/each}
 											</Accordion.Root>
+
+											<Button variant="outline"
+												on:click={() => updateSettings()}
+												class="mt-2 rounded px-4 py-2 font-bold text-white hover:bg-green-700"
+											>
+												Save Settings
+											</Button>
 										{/if}
 									</Tabs.Content>
 								{/each}

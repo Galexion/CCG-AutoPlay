@@ -3,19 +3,19 @@ import { getMediaList } from "./caspercg";
 let db = new sqlite3.Database('db.sqlite');
 
 interface queueItem {
-    media: string, type: string, duration:number
+    media: String, type: String, duration:number
 }
 
 interface queue extends Array<queueItem>{}
 
 interface settingsItem {
-    setting: string, data: string, type:string
+    setting: String, data: String, type:String
 }
 
 interface settings extends Array<settingsItem>{}
 
 interface recentlyplayedItem {
-    media: string, timestamp:number, id: number
+    media: String, timestamp:number, id: number
 }
 
 interface recentlyplayed extends Array<recentlyplayedItem>{}
@@ -30,6 +30,9 @@ let expectedSettings:settings = [
     { "setting": "bugLayer", "data": "20", "type": "1" },
     { "setting": "arrayNameArea", "data": "1", "type": "1" },
     { "setting": "categoryNameArea", "data": "-1", "type": "1" },
+    { "setting": "categories", "data": "[]", "type": "2" },
+    { "setting": "ratios", "data": "[]", "type": "2" },
+    { "setting": "programRoll", "data": "[]", "type": "2" },
 ]
 
 /* Single Time Functions */
@@ -60,7 +63,7 @@ db.serialize(() => {
 
 /* Queue Functions */
 
-export async function queueMedia(media: string, type: string, duration: number) {
+export async function queueMedia(media: String, type: String, duration: number) {
     let queue:queue = await getQueue();
     if (queue.find((item) => item.media == media)) {
         return
@@ -124,10 +127,10 @@ const intervalId = setInterval(async () => {
     refreshRecentlyPlayed()
 }, 300);
 export async function refreshRecentlyPlayed() {
-    let recentlyplayed:recentlyplayed = await getRecentlyPlayed();
+    let recentlyplayed: recentlyplayed = await getRecentlyPlayed();
     let media = await getMediaList();
     let settings = await getSettings()
-    let queue:queue = await getQueue()
+    let queue: queue = await getQueue()
     let MediaList = media?.filter((clip) => {
         return clip.type !== "STILL"
       });
@@ -141,7 +144,7 @@ export async function refreshRecentlyPlayed() {
     return true
 }
 
-export async function addToRecentlyPlayed(media: string) {
+export async function addToRecentlyPlayed(media: String) {
     let recentlyplayed:recentlyplayed = await getRecentlyPlayed()
     if (recentlyplayed.find((item) => item.media == media)) return
     return new Promise((resolve, reject) => {
@@ -220,7 +223,7 @@ export async function updateSettings(settings:settings) {
     }
 }
 
-export async function updateSetting(setting: string, data: any) {
+export async function updateSetting(setting: String, data: any) {
     return new Promise((resolve, reject) => {
         db.run('UPDATE settings SET data = ? WHERE setting = ?; ', [data, setting]);
         resolve(undefined)

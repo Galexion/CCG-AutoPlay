@@ -26,7 +26,7 @@
 			.catch((err) => console.error(err));
 	}
 
-	function SendToQueue(clip: any, type: string, duration: number) {
+	function SendToQueue(clip: any, type: String, duration: number) {
 		const options = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

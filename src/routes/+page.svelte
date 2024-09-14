@@ -38,7 +38,7 @@
 
 	let nameArrayPlace: number = 1;
 	let categoryNamePlace: number = 0;
-	let settings: Array<any> = undefined;
+	let settings: Array<any> = [];
 	async function grabSettings() {
 		const options = {
 			method: 'GET',
@@ -65,7 +65,7 @@
 	});
 
 	let customData = writable('{}');
-	let items = {};
+	let items = [];
 	$: items = [
 		{ label: 'Clips', value: 1, component: Clips, mediaList: data.mediaList },
 		{
@@ -85,7 +85,7 @@
 		{ label: 'Settings', value: 3, component: settingsTab, mediaList: data.mediaList }
 	];
 
-	function playbackControls(type) {
+	function playbackControls(type: number) {
 		const options = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json', 'User-Agent': 'insomnia/9.2.0' },
@@ -95,7 +95,7 @@
 			.then((response) => response.json())
 			.catch((err) => console.error(err));
 	}
-	function removeFromQueue(id) {
+	function removeFromQueue(id: any) {
 		const options = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json', 'User-Agent': 'insomnia/9.2.0' },

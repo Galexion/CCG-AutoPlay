@@ -1,13 +1,13 @@
 // This File handles all CasparCG Talk.
 
 interface queueItem {
-    id: number, media: string, type: string, duration: number
+    id: number, media: String, type: String, duration: number
 }
 
 interface queue extends Array<queueItem> { }
 
 interface recentlyplayedItem {
-    media: string, timestamp: number
+    media: String, timestamp: number
 }
 
 interface recentlyplayed extends Array<recentlyplayedItem> { }
@@ -17,8 +17,14 @@ import { CasparCG } from "casparcg-connection"
 import { TransitionType } from "casparcg-connection/dist/enums";
 let connection = new CasparCG()
 export let currentlyPlaying = undefined
+
 let lastTimeCode = 0
 let waitingForQueue = 0
+
+let programSelection = 0;
+let regex = /\s-\s|\//gm;
+
+
 const intervalId = setInterval(async () => {
     // Your code to be executed every 0.1 seconds
     const { error, request } = await connection.infoChannel({ channel: 1 })
@@ -52,15 +58,46 @@ const intervalId = setInterval(async () => {
     let queue: queue = await getQueue()
     /* if the queue happens to be less then the length the user wants it to be, add new content. */
     let settings = await getSettings()
+
+    
+
     if (queue.length < settings.find((item) => item.setting == "queuelength").data) {
+        let pgRoll = JSON.parse(settings.find((item) => item.setting == "programRoll").data)
+        let ratios = JSON.parse(settings.find((item) => item.setting == "ratios").data)
+        console.log(programSelection > (ratios.length - 1))
+        let selectedTags = ratios[programSelection].tags
+        programSelection++
+        
+        if (programSelection > (ratios.length - 1)) {
+            programSelection = 0
+        }
         let media = await getMediaList();
         let recentlyplayed: recentlyplayed = await getRecentlyPlayed();
         let mediaList = media.filter((clip) => {
-            return clip.type !== "STILL" &&
-                !queue.some((element) => element.media == clip.clip) &&
-                !recentlyplayed.some((element) => {
-                    return element.media == clip.clip
-                });
+            if(pgRoll.length > 0 && ratios.length > 0) {
+                // Check if the media clip has been played recently or is in the queue
+                const isInQueue = queue.some((element) => element.media == clip.clip);
+                const isRecentlyPlayed = recentlyplayed.some((element) => element.media == clip.clip);
+            
+                // Check if the clip type is not "STILL"
+                const isValidType = clip.type !== "STILL";
+            
+                // Check if the clip contains any of the selected tags
+                const containsTag = selectedTags.some(tag => clip.clip.includes(tag.name));
+                
+                // Combine all conditions
+                return isValidType && !isInQueue && !isRecentlyPlayed && containsTag;
+            } else {
+                // Check if the media clip has been played recently or is in the queue
+                const isInQueue = queue.some((element) => element.media == clip.clip);
+                const isRecentlyPlayed = recentlyplayed.some((element) => element.media == clip.clip);
+            
+                // Check if the clip type is not "STILL"
+                const isValidType = clip.type !== "STILL";
+            
+                // Combine all conditions
+                return isValidType && !isInQueue && !isRecentlyPlayed;
+            }
         });
         if (mediaList.length > 0) {
             let clip = mediaList[Math.floor(Math.random() * (mediaList.length - 1))]
@@ -70,8 +107,7 @@ const intervalId = setInterval(async () => {
         }
     }
 }, 500);
-
-// To stop the interval later:
+// To stop the interval later:dw
 //clearInterval(intervalId);
 let oneTimeRun = setInterval(async () => {
     //playChannelBug(1,20)
@@ -90,8 +126,7 @@ export async function nextInQueue() {
     }
 }
 
-
-export async function getMediaList(sub_directory?: string) {
+export async function getMediaList(sub_directory?: String) {
     const { error, request } = await connection.cls()
     if (error) {
         throw error;
@@ -99,7 +134,7 @@ export async function getMediaList(sub_directory?: string) {
     return (await request).data;
 }
 
-export async function getTemplateList(sub_directory?: string) {
+export async function getTemplateList(sub_directory?: String) {
     const { error, request } = await connection.tls()
     if (error) {
         throw error;
@@ -107,7 +142,7 @@ export async function getTemplateList(sub_directory?: string) {
     return (await request).data;
 }
 
-export async function getTemplateInformation(template: string) {
+export async function getTemplateInformation(template: String) {
     const { error, request } = await connection.infoTemplate({ template })
     if (error) {
         throw error;
@@ -115,7 +150,7 @@ export async function getTemplateInformation(template: string) {
     return (await request).data;
 }
 
-export async function getFontList(sub_directory?: string) {
+export async function getFontList(sub_directory?: String) {
     const { error, request } = await connection.fls()
     if (error) {
         throw error;
@@ -124,7 +159,7 @@ export async function getFontList(sub_directory?: string) {
 }
 
 
-export async function sendFileToServer(channel: number, layer?: any, clip?: string, additionalArgs?: any, playNow?: number) {
+export async function sendFileToServer(channel: number, layer?: any, clip?: String, additionalArgs?: any, playNow?: number) {
     const { error, request } = await connection.load({ channel, clip, layer })
     if (error) {
         throw error;
@@ -135,7 +170,7 @@ export async function sendFileToServer(channel: number, layer?: any, clip?: stri
     return;
 }
 
-export async function sendTemplateToServer(channel: number, layer: number, template: string, playOnLoad: boolean, stopAfterPlay: boolean, duration: number, additionalArgs: any) {
+export async function sendTemplateToServer(channel: number, layer: number, template: String, playOnLoad: boolean, stopAfterPlay: boolean, duration: number, additionalArgs: any) {
     const { error, request } = await connection.cgAdd({
         channel, layer, template, playOnLoad,
         cgLayer: 0,
@@ -163,7 +198,7 @@ export async function stopTemplate(channel: number, layer: number, duration: num
     }, duration);
 }
 
-export async function affixChannelBugtoServer(channel: number, layer: number, clip: string) {
+export async function affixChannelBugtoServer(channel: number, layer: number, clip: String) {
     try {
         const { error } = await connection.play({
             channel: channel,
