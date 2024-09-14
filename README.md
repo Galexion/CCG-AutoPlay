@@ -36,7 +36,7 @@ The ability to change what channel and layer CasparCG-Autoplay utilizes is avali
 
 If you want to support me, and motivate me to work on this project more, consider donating.
 
-(GalexionLink Stripe)[https://donate.stripe.com/4gw8yv8DMfAY0Ra000]
-(Galexion's Liberapay)[https://liberapay.com/Galexion/]
+[GalexionLink Stripe](https://donate.stripe.com/4gw8yv8DMfAY0Ra000)
+[Galexion's Liberapay](https://liberapay.com/Galexion/)
 
 Thank you!
