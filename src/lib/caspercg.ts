@@ -30,23 +30,24 @@ const intervalId = setInterval(async () => {
     const { error, request } = await connection.infoChannel({ channel: 1 })
     let specifiedLayer = (await request)?.data?.channel.layers.find((element) => element.layer == 10);
     if (specifiedLayer?.foreground) {
-
-        currentlyPlaying = specifiedLayer.foreground.file[0]
-        if (currentlyPlaying?.time) {
-            if (currentlyPlaying?.time[0] == lastTimeCode) {
+        if(specifiedLayer.foreground.file) {
+            currentlyPlaying = specifiedLayer.foreground.file[0]
+            if (currentlyPlaying?.time) {
+                if (currentlyPlaying?.time[0] == lastTimeCode) {
+                    if (waitingForQueue == 0) {
+                        console.log("Switching to next Video, Time has Elapsed")
+                    }
+                    waitingForQueue = 1
+                    nextInQueue()
+                }
+                lastTimeCode = currentlyPlaying.time[0]
+            } else {
                 if (waitingForQueue == 0) {
-                    console.log("Switching to next Video, Time has Elapsed")
+                    console.log("Switching to next Video, Video Likely is not a Video")
                 }
                 waitingForQueue = 1
                 nextInQueue()
             }
-            lastTimeCode = currentlyPlaying.time[0]
-        } else {
-            if (waitingForQueue == 0) {
-                console.log("Switching to next Video, Video Likely is not a Video")
-            }
-            waitingForQueue = 1
-            nextInQueue()
         }
     } else {
         if (waitingForQueue == 0) {
@@ -58,9 +59,6 @@ const intervalId = setInterval(async () => {
     let queue: queue = await getQueue()
     /* if the queue happens to be less then the length the user wants it to be, add new content. */
     let settings = await getSettings()
-
-    
-
     if (queue.length < settings.find((item) => item.setting == "queuelength").data) {
         let pgRoll = JSON.parse(settings.find((item) => item.setting == "programRoll").data)
         let ratios = JSON.parse(settings.find((item) => item.setting == "ratios").data)
@@ -104,6 +102,7 @@ const intervalId = setInterval(async () => {
             let seconds = Math.floor(clip?.frames / adjustedFramerate)
             queueMedia(clip.clip, clip.type, seconds)
         }
+        
     }
 }, 500);
 // To stop the interval later:dw
