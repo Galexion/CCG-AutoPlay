@@ -4,6 +4,8 @@ CasperCG Autoplay connects to CasparCG, grabs the Media List, and plays your Pro
 
 ![A Screenshot of CasparCG-Autoplay](readmefiles/screenshot1.png)
 
+## [More Info Here](https://galexion.link/projects/CasparCG-Autoplay)
+
 ## Running the Program
 
 > **_Important:_** CasparCG-Autoplay Assumes you have sorted your media into folders, as CasparCG-Autoplay uses these folders as the basis of it's tag and Advanced Autoplay System.
