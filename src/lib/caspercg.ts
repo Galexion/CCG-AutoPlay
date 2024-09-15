@@ -65,7 +65,6 @@ const intervalId = setInterval(async () => {
         let pgRoll = JSON.parse(settings.find((item) => item.setting == "programRoll").data)
         let ratios = JSON.parse(settings.find((item) => item.setting == "ratios").data)
         console.log(programSelection > (ratios.length - 1))
-        let selectedTags = ratios[programSelection].tags
         programSelection++
         
         if (programSelection > (ratios.length - 1)) {
@@ -75,6 +74,7 @@ const intervalId = setInterval(async () => {
         let recentlyplayed: recentlyplayed = await getRecentlyPlayed();
         let mediaList = media.filter((clip) => {
             if(pgRoll.length > 0 && ratios.length > 0) {
+                let selectedTags = ratios[programSelection].tags
                 // Check if the media clip has been played recently or is in the queue
                 const isInQueue = queue.some((element) => element.media == clip.clip);
                 const isRecentlyPlayed = recentlyplayed.some((element) => element.media == clip.clip);
@@ -100,6 +100,7 @@ const intervalId = setInterval(async () => {
             }
         });
         if (mediaList.length > 0) {
+        let selectedTags = ratios[programSelection].tags
             let clip = mediaList[Math.floor(Math.random() * (mediaList.length - 1))]
             let adjustedFramerate = clip?.framerate > 1000 ? clip?.framerate / 1000 : clip?.framerate
             let seconds = Math.floor(clip?.frames / adjustedFramerate)
