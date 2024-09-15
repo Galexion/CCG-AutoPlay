@@ -64,17 +64,16 @@ const intervalId = setInterval(async () => {
     if (queue.length < settings.find((item) => item.setting == "queuelength").data) {
         let pgRoll = JSON.parse(settings.find((item) => item.setting == "programRoll").data)
         let ratios = JSON.parse(settings.find((item) => item.setting == "ratios").data)
-        console.log(programSelection > (ratios.length - 1))
         programSelection++
         
         if (programSelection > (ratios.length - 1)) {
             programSelection = 0
         }
+
         let media = await getMediaList();
         let recentlyplayed: recentlyplayed = await getRecentlyPlayed();
         let mediaList = media.filter((clip) => {
-            if(pgRoll.length > 0 && ratios.length > 0) {
-                let selectedTags = ratios[programSelection].tags
+            if(pgRoll.length >= 1 && ratios.length >= 1) {
                 // Check if the media clip has been played recently or is in the queue
                 const isInQueue = queue.some((element) => element.media == clip.clip);
                 const isRecentlyPlayed = recentlyplayed.some((element) => element.media == clip.clip);
@@ -83,7 +82,7 @@ const intervalId = setInterval(async () => {
                 const isValidType = clip.type !== "STILL";
             
                 // Check if the clip contains any of the selected tags
-                const containsTag = selectedTags.some(tag => clip.clip.includes(tag.name));
+                const containsTag = ratios[programSelection].tags.some(tag => clip.clip.includes(tag.name));
                 
                 // Combine all conditions
                 return isValidType && !isInQueue && !isRecentlyPlayed && containsTag;
@@ -100,7 +99,6 @@ const intervalId = setInterval(async () => {
             }
         });
         if (mediaList.length > 0) {
-        let selectedTags = ratios[programSelection].tags
             let clip = mediaList[Math.floor(Math.random() * (mediaList.length - 1))]
             let adjustedFramerate = clip?.framerate > 1000 ? clip?.framerate / 1000 : clip?.framerate
             let seconds = Math.floor(clip?.frames / adjustedFramerate)
