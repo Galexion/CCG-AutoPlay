@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
-	import { writable } from 'svelte/store';
 	import { source } from 'sveltekit-sse';
 	import { onMount } from 'svelte';
 	export let data: LayoutData;
@@ -17,7 +16,6 @@
 
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Table from '$lib/components/ui/table';
-	import { Textarea } from '$lib/components/ui/textarea';
 	import Templates from '$lib/tabs/templates.svelte';
 	import settingsTab from '$lib/tabs/settings.svelte';
 	import Clips from '$lib/tabs/clips.svelte';
@@ -64,7 +62,6 @@
 		grabSettings();
 	});
 
-	let customData = writable('{}');
 	let items = [];
 	$: items = [
 		{ label: 'Clips', value: 1, component: Clips, mediaList: data.mediaList },
@@ -72,15 +69,13 @@
 			label: 'Templates',
 			value: 2,
 			component: Templates,
-			templateList: data.templateList,
-			customData: $customData
+			templateList: data.templateList
 		},
 		{
 			label: 'Channel Bug',
 			value: 2,
 			component: Overlays,
-			mediaList: data.mediaList,
-			customData: $customData
+			mediaList: data.mediaList
 		},
 		{ label: 'Settings', value: 3, component: settingsTab, mediaList: data.mediaList }
 	];
@@ -230,14 +225,17 @@
 					</Button>
 				{/if}
 			{/await}
+			<!--
+
+				
 			<Button
 				on:click={() => playbackControls(4)}
 				class="rounded bg-gray-800 px-4 py-2 font-bold text-white hover:bg-red-900"
 				>Clear All</Button
 			>
+
+			-->
 		</div>
-		<h3>Custom Template Data (JSON)</h3>
-		<Textarea bind:value={$customData} style="width:98%;" />
 		<div class="pt-2">
 			<h2 class="text-3xl font-semibold">Queue</h2>
 			<Table.Root style="width:98%;">
@@ -311,11 +309,6 @@
 											on:click={() => removeFromQueue(item.id)}
 											class="rounded bg-gray-800 px-2 py-0.5 font-semibold text-white hover:bg-red-700"
 											>Remove</Button
-										>
-										<Button
-											on:click={() => removeFromQueue(item.id)}
-											class="rounded bg-gray-800 px-2 py-0.5 font-semibold text-white hover:bg-red-700"
-											>Replace</Button
 										>
 									</div>
 								</Table.Cell>

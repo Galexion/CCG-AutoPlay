@@ -392,7 +392,7 @@
 															role="combobox"
 															class="mr-1 w-[420px] justify-between"
 														>
-															{programRollSelect || 'No Tag Selected...'}
+															{programRollSelect || 'No Ratio Category Selected...'}
 															<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 														</Button>
 													</Popover.Trigger>

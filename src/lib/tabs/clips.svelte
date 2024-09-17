@@ -114,8 +114,7 @@
 								<Badge variant="secondary" class="tag mr-1">
 									<span style=" font-size:15px;" class="material-symbols-outlined">
 										style
-									</span>{tag}</Badge
-								>
+									</span>{tag}</Badge>
 							{/if}
 						{/each}
 					</h3>
